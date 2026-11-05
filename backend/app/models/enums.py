@@ -21,3 +21,17 @@ class ProjectFeature(StrEnum):
     SHOPPING = "shopping"
     TENANTS_CLUB = "tenants_club"
     PARKING = "parking"
+
+
+class ChatStep(StrEnum):
+    CHOOSE_TYPE = "choose_type"
+    ASK_NAME = "ask_name"
+    ASK_PHONE = "ask_phone"
+    ASK_PREFERENCES = "ask_preferences"
+    ASK_CALLBACK = "ask_callback"
+    DONE = "done"
+
+
+class MessageRole(StrEnum):
+    USER = "user"
+    BOT = "bot"
