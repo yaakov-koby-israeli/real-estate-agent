@@ -31,6 +31,7 @@ Run from `backend/`:
 python -m venv .venv                             # once
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m scripts.run_scraper      # refresh data/projects.json from the WordPress API
+.venv\Scripts\python -m pytest                   # run tests (use fake data via tmp_path, never the real projects.json)
 ```
 
 ## Data source
