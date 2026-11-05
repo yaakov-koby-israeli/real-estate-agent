@@ -26,7 +26,20 @@ frontend/src/
 ```
 
 ## Commands
-<!-- Filled in as each step adds them -->
+Run from `backend/`:
+```bash
+python -m venv .venv                             # once
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m scripts.run_scraper      # refresh data/projects.json from the WordPress API
+```
+
+## Data source
+Projects come from the site's WordPress REST API (`/wp-json/wp/v2/project`), not HTML scraping.
+`scraper/project_parser.py` maps WordPress category slugs to our enums and extracts city/rooms/features
+with simple keyword rules. Tags are a first-pass filter — the full `description` is kept for the agent.
+
+## Local scratch
+`scratch/` (git-ignored) holds throwaway exploration scripts and downloads. Keep all temp files there.
 
 ## Code rules
 - Keep it as simple as possible. Classes and Enums only when they make the code clearer.

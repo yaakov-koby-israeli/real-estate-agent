@@ -6,6 +6,9 @@
 # --- Customer personal data (leads) ---
 backend/data/leads/
 
+# --- Local scratch work (exploration scripts, downloaded HTML) ---
+scratch/
+
 # --- Python ---
 __pycache__/
 *.py[cod]
