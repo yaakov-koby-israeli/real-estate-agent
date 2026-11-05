@@ -31,7 +31,14 @@ Run from `backend/`:
 python -m venv .venv                             # once
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m scripts.run_scraper      # refresh data/projects.json from the WordPress API
+.venv\Scripts\python -m pytest                   # run tests (use fake data via tmp_path, never the real projects.json)
+.venv\Scripts\python -m uvicorn app.main:app --reload   # dev server, API docs at http://127.0.0.1:8000/docs
 ```
+
+## Backend conventions
+- Routes get services through FastAPI `Depends` (see `app/dependencies.py`), so tests can swap them
+  with `app.dependency_overrides`.
+- Static routes (e.g. `/cities`) must be declared before path-parameter routes (`/{project_id}`).
 
 ## Data source
 Projects come from the site's WordPress REST API (`/wp-json/wp/v2/project`), not HTML scraping.
