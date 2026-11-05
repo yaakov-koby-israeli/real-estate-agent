@@ -39,6 +39,9 @@ python -m venv .venv                             # once
 - Routes get services through FastAPI `Depends` (see `app/dependencies.py`), so tests can swap them
   with `app.dependency_overrides`.
 - Static routes (e.g. `/cities`) must be declared before path-parameter routes (`/{project_id}`).
+- Chat sessions live in memory (`services/session_store.py`) and are lost on server restart / `--reload`.
+- API request/response schemas live next to their routes; `models/` holds internal data models.
+- `backend/.env` holds `OPENAI_API_KEY` (git-ignored). Never read, print, or commit it.
 
 ## Data source
 Projects come from the site's WordPress REST API (`/wp-json/wp/v2/project`), not HTML scraping.
