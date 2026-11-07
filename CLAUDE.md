@@ -42,6 +42,15 @@ python -m venv .venv                             # once
 - Chat sessions live in memory (`services/session_store.py`) and are lost on server restart / `--reload`.
 - API request/response schemas live next to their routes; `models/` holds internal data models.
 - `backend/.env` holds `OPENAI_API_KEY` (git-ignored). Never read, print, or commit it.
+  Optional `OPENAI_MODEL` overrides the default in `app/config.py`.
+
+## AI agent
+- `agent/project_agent.py` is a plain OpenAI tool-calling loop (max `MAX_TOOL_ROUNDS`). No LangGraph for now.
+- The model only gets the `search_projects` tool; `city` is an enum built from the data so it can't invent cities.
+- Data minimization: the agent sees `session.history[agent_start_index:]` only - never name or phone.
+- `OpenAIError` is caught, logged, and answered with `FALLBACK_REPLY`.
+- Tests never call OpenAI: use `FakeAgent` / `flow` from `tests/conftest.py`, or a fake client
+  (see `tests/test_project_agent.py`).
 
 ## Data source
 Projects come from the site's WordPress REST API (`/wp-json/wp/v2/project`), not HTML scraping.

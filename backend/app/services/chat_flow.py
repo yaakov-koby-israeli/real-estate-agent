@@ -1,3 +1,4 @@
+from app.agent.project_agent import ProjectAgent
 from app.models.chat import ChatMessage, ChatReply, ChatSession
 from app.models.enums import ChatStep, MessageRole, ProjectCategory
 from app.services.validation import normalize_name, normalize_phone
@@ -11,24 +12,29 @@ CALLBACK_OPTIONS = {
     "כן, אשמח שיחזרו אליי": True,
     "לא, תודה": False,
 }
+FINISH_OPTION = "סיימתי, תודה"
+CALLBACK_QUESTION = "האם תרצה/י שנציג ממחלקת המכירות יחזור אליך להמשך התהליך?"
 
 
 class ChatFlow:
-    """Deterministic conversation: each step has one handler that validates input and picks the next step."""
+    """Deterministic conversation: each step has one handler that validates input and picks the next step.
+    Only the free-text part (preferences and follow-up questions) is handed to the AI agent."""
 
-    def __init__(self):
+    def __init__(self, agent: ProjectAgent):
+        self._agent = agent
         self._handlers = {
             ChatStep.CHOOSE_TYPE: self._handle_choose_type,
             ChatStep.ASK_NAME: self._handle_name,
             ChatStep.ASK_PHONE: self._handle_phone,
             ChatStep.ASK_PREFERENCES: self._handle_preferences,
+            ChatStep.AGENT_CONVERSATION: self._handle_agent_conversation,
             ChatStep.ASK_CALLBACK: self._handle_callback,
             ChatStep.DONE: self._handle_done,
         }
 
     def start(self, session: ChatSession) -> ChatReply:
         reply = ChatReply(
-            text="שלום! אני העוזר הדיגיטלי של פרשקובסקי 😊 מה מעניין אותך?",
+            text="שלום! אני הסוכן הווירטואלי של פרשקובסקי 🏠 אשמח לעזור לך למצוא את הבית הבא שלך. מה מעניין אותך?",
             options=list(TYPE_OPTIONS),
         )
         self._record(session, MessageRole.BOT, reply.text)
@@ -70,13 +76,21 @@ class ChatFlow:
         )
 
     def _handle_preferences(self, session: ChatSession, text: str) -> ChatReply:
-        # Step 4 will hand this to the AI agent. For now we just save it and move on.
         session.preferences = text
-        session.step = ChatStep.ASK_CALLBACK
-        return ChatReply(
-            text="תודה, רשמתי את הבקשות שלך. האם תרצה/י שנציג ממחלקת המכירות יחזור אליך?",
-            options=list(CALLBACK_OPTIONS),
-        )
+        session.agent_start_index = len(session.history) - 1  # the preferences message we just recorded
+        session.step = ChatStep.AGENT_CONVERSATION
+        return self._ask_agent(session)
+
+    def _handle_agent_conversation(self, session: ChatSession, text: str) -> ChatReply:
+        if text == FINISH_OPTION:
+            session.step = ChatStep.ASK_CALLBACK
+            return ChatReply(text=CALLBACK_QUESTION, options=list(CALLBACK_OPTIONS))
+        return self._ask_agent(session)
+
+    def _ask_agent(self, session: ChatSession) -> ChatReply:
+        conversation = session.history[session.agent_start_index:]
+        answer = self._agent.reply(session.category, conversation)
+        return ChatReply(text=answer, options=[FINISH_OPTION])
 
     def _handle_callback(self, session: ChatSession, text: str) -> ChatReply:
         wants_callback = CALLBACK_OPTIONS.get(text)
