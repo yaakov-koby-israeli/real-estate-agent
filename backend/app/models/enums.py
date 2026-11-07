@@ -33,6 +33,12 @@ class ChatStep(StrEnum):
     DONE = "done"
 
 
+class InterestLevel(StrEnum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
 class MessageRole(StrEnum):
     USER = "user"
     BOT = "bot"
