@@ -1,9 +1,13 @@
-from openai import OpenAI
+import logging
+
+from openai import OpenAI, OpenAIError
 
 from app.agent.prompts import build_system_prompt
 from app.agent.tools import ProjectTools
 from app.models.chat import ChatMessage
 from app.models.enums import MessageRole, ProjectCategory
+
+logger = logging.getLogger(__name__)
 
 MAX_TOOL_ROUNDS = 4
 FALLBACK_REPLY = "מצטער, לא הצלחתי למצוא תשובה כרגע. נציג מטעמנו ישמח לעזור לך באופן אישי."
@@ -22,7 +26,14 @@ class ProjectAgent:
     def reply(self, category: ProjectCategory, conversation: list[ChatMessage]) -> str:
         messages = [{"role": "system", "content": build_system_prompt(category)}]
         messages += [{"role": OPENAI_ROLES[m.role], "content": m.text} for m in conversation]
+        try:
+            return self._run_tool_loop(messages)
+        except OpenAIError:
+            # Network / auth / rate-limit problems: the customer gets a polite reply, we get the details in the log.
+            logger.exception("OpenAI request failed")
+            return FALLBACK_REPLY
 
+    def _run_tool_loop(self, messages: list[dict]) -> str:
         for _ in range(MAX_TOOL_ROUNDS):
             response = self._client.chat.completions.create(
                 model=self._model,

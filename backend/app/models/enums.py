@@ -28,6 +28,7 @@ class ChatStep(StrEnum):
     ASK_NAME = "ask_name"
     ASK_PHONE = "ask_phone"
     ASK_PREFERENCES = "ask_preferences"
+    AGENT_CONVERSATION = "agent_conversation"
     ASK_CALLBACK = "ask_callback"
     DONE = "done"
 

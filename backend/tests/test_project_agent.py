@@ -3,6 +3,7 @@ import json
 from types import SimpleNamespace
 
 import pytest
+from openai import OpenAIError
 from openai.types.chat import ChatCompletionMessage, ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion_message_tool_call import Function
 
@@ -80,6 +81,14 @@ def test_loop_stops_after_max_rounds(tools):
     client = FakeOpenAI([])  # with no scripted answers, the fake keeps asking for tools forever
     assert ask(ProjectAgent(client, "fake-model", tools)) == FALLBACK_REPLY
     assert len(client.calls) == MAX_TOOL_ROUNDS
+
+
+def test_openai_error_returns_fallback_instead_of_crashing(tools):
+    def broken_create(**kwargs):
+        raise OpenAIError("network is down")
+
+    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=broken_create)))
+    assert ask(ProjectAgent(client, "fake-model", tools)) == FALLBACK_REPLY
 
 
 def test_system_prompt_and_roles(tools):

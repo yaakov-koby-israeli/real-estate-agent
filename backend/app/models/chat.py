@@ -24,3 +24,5 @@ class ChatSession(BaseModel):
     preferences: str | None = None
     wants_callback: bool | None = None
     history: list[ChatMessage] = []
+    # Where the conversation with the AI agent starts in `history` - the agent never sees name/phone.
+    agent_start_index: int | None = None

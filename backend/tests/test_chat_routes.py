@@ -1,15 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.dependencies import get_session_store
+from app.dependencies import get_chat_flow, get_session_store
 from app.main import app
 from app.services.session_store import SessionStore
 
 
 @pytest.fixture
-def client():
+def client(flow):
     store = SessionStore()  # fresh, empty store for every test
     app.dependency_overrides[get_session_store] = lambda: store
+    app.dependency_overrides[get_chat_flow] = lambda: flow  # flow with FakeAgent, from conftest.py
     yield TestClient(app)
     app.dependency_overrides.clear()
 
