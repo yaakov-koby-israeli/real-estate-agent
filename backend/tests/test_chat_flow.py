@@ -56,6 +56,17 @@ def test_agent_never_sees_name_or_phone(flow, session, fake_agent):
     assert not any("יעקב" in text or "050" in text for text in conversation)
 
 
+def test_agent_conversation_excludes_everything_after_finish(flow, session):
+    reach_agent_conversation(flow, session)
+    flow.handle_message(session, FINISH_OPTION)
+    flow.handle_message(session, "כן, אשמח שיחזרו אליי")
+
+    # The closing message contains name and phone - it must stay out of what we send to OpenAI.
+    texts = [m.text for m in session.agent_conversation()]
+    assert texts == ["3 חדרים בתל אביב", FAKE_AGENT_ANSWER]
+    assert not any("יעקב" in t or "0501234567" in t for t in texts)
+
+
 def test_follow_up_questions_stay_with_agent(flow, session, fake_agent):
     reach_agent_conversation(flow, session)
     flow.handle_message(session, "ומה עם 4 חדרים?")
@@ -68,6 +79,20 @@ def test_finish_moves_to_callback_question(flow, session):
     reply = flow.handle_message(session, FINISH_OPTION)
     assert session.step == ChatStep.ASK_CALLBACK
     assert "כן, אשמח שיחזרו אליי" in reply.options
+
+
+def test_lead_is_saved_once_when_conversation_ends(flow, session, fake_lead_service):
+    reach_agent_conversation(flow, session)
+    flow.handle_message(session, FINISH_OPTION)
+    assert fake_lead_service.saved == []
+
+    flow.handle_message(session, "לא, תודה")
+    flow.handle_message(session, "עוד הודעה אחרי הסיום")
+
+    assert len(fake_lead_service.saved) == 1
+    saved = fake_lead_service.saved[0]
+    assert saved.wants_callback is False
+    assert saved.history[-1].role == MessageRole.BOT  # the closing message is already in the transcript
 
 
 def test_unknown_type_stays_on_same_step(flow, session):

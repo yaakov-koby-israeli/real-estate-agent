@@ -17,11 +17,26 @@ class FakeAgent:
         return FAKE_AGENT_ANSWER
 
 
+class FakeLeadService:
+    """Stands in for LeadService: records which sessions were saved instead of writing files."""
+
+    def __init__(self):
+        self.saved = []
+
+    def save(self, session):
+        self.saved.append(session.model_copy(deep=True))
+
+
 @pytest.fixture
 def fake_agent():
     return FakeAgent()
 
 
 @pytest.fixture
-def flow(fake_agent):
-    return ChatFlow(fake_agent)
+def fake_lead_service():
+    return FakeLeadService()
+
+
+@pytest.fixture
+def flow(fake_agent, fake_lead_service):
+    return ChatFlow(fake_agent, fake_lead_service)
