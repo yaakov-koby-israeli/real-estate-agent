@@ -47,8 +47,13 @@ python -m venv .venv                             # once
 ## AI agent
 - `agent/project_agent.py` is a plain OpenAI tool-calling loop (max `MAX_TOOL_ROUNDS`). No LangGraph for now.
 - The model only gets the `search_projects` tool; `city` is an enum built from the data so it can't invent cities.
-- Data minimization: the agent sees `session.history[agent_start_index:]` only - never name or phone.
+- Data minimization: anything sent to OpenAI uses `session.agent_conversation()` (the [start, end) slice
+  of the history) - never name, phone, or the closing message. Don't slice `history` by hand.
 - `OpenAIError` is caught, logged, and answered with `FALLBACK_REPLY`.
+- When a conversation reaches `DONE`, `services/lead_service.py` saves one lead to `backend/data/leads/`
+  (git-ignored, customer PII) - including when the customer declined a callback. The AI summary
+  (`agent/lead_summarizer.py`, structured output into `LeadSummary`) may be `None`; the lead is still saved.
+  `requested_*` fields are what the CUSTOMER asked for (demand analysis), not what the agent suggested.
 - Tests never call OpenAI: use `FakeAgent` / `flow` from `tests/conftest.py`, or a fake client
   (see `tests/test_project_agent.py`).
 

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 BACKEND_DIR = Path(__file__).parent.parent
 DATA_DIR = BACKEND_DIR / "data"
 PROJECTS_FILE = DATA_DIR / "projects.json"
+LEADS_DIR = DATA_DIR / "leads"
 
 load_dotenv(BACKEND_DIR / ".env")
 

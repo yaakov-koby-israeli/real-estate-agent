@@ -44,5 +44,30 @@ Moving forward:
 """
 
 
+SUMMARY_PROMPT = """You summarize a conversation between Prashkovsky's virtual real-estate agent
+and a potential customer, for the sales team and for demand analysis.
+
+The customer is looking for: {category}.
+
+Fill in the fields:
+- summary: 2-3 sentences in Hebrew for the sales representative who will call the customer:
+  who they are (family situation, if mentioned), what they are looking for, and which projects
+  interested them.
+- requested_cities: cities the CUSTOMER asked for, in Hebrew - including cities where Prashkovsky
+  has no project. Do NOT include cities that only the agent suggested as alternatives.
+- requested_rooms: numbers of rooms the CUSTOMER asked for.
+- requested_features: what matters to the CUSTOMER, using only the allowed values.
+- suggested_projects: names of the projects the agent recommended.
+- interest_level: high - specific needs and follow-up questions; medium - general interest;
+  low - vague or just browsing.
+
+Use only information from the conversation. If something wasn't mentioned, leave the list empty.
+"""
+
+
 def build_system_prompt(category: ProjectCategory) -> str:
     return SYSTEM_PROMPT.format(category=CATEGORY_NAMES.get(category, category))
+
+
+def build_summary_prompt(category: ProjectCategory) -> str:
+    return SUMMARY_PROMPT.format(category=CATEGORY_NAMES.get(category, category))

@@ -1,6 +1,7 @@
 from app.agent.project_agent import ProjectAgent
 from app.models.chat import ChatMessage, ChatReply, ChatSession
 from app.models.enums import ChatStep, MessageRole, ProjectCategory
+from app.services.lead_service import LeadService
 from app.services.validation import normalize_name, normalize_phone
 
 # Button label -> value. The frontend sends back the exact label the user clicked.
@@ -20,8 +21,9 @@ class ChatFlow:
     """Deterministic conversation: each step has one handler that validates input and picks the next step.
     Only the free-text part (preferences and follow-up questions) is handed to the AI agent."""
 
-    def __init__(self, agent: ProjectAgent):
+    def __init__(self, agent: ProjectAgent, lead_service: LeadService):
         self._agent = agent
+        self._lead_service = lead_service
         self._handlers = {
             ChatStep.CHOOSE_TYPE: self._handle_choose_type,
             ChatStep.ASK_NAME: self._handle_name,
@@ -41,9 +43,13 @@ class ChatFlow:
         return reply
 
     def handle_message(self, session: ChatSession, text: str) -> ChatReply:
+        step_before = session.step
         self._record(session, MessageRole.USER, text)
         reply = self._handlers[session.step](session, text.strip())
         self._record(session, MessageRole.BOT, reply.text)
+        # Save the lead exactly once - when the conversation has just finished, with the full transcript.
+        if session.step == ChatStep.DONE and step_before != ChatStep.DONE:
+            self._lead_service.save(session)
         return reply
 
     def _record(self, session: ChatSession, role: MessageRole, text: str):
@@ -83,13 +89,13 @@ class ChatFlow:
 
     def _handle_agent_conversation(self, session: ChatSession, text: str) -> ChatReply:
         if text == FINISH_OPTION:
+            session.agent_end_index = len(session.history) - 1  # stop before the "finish" click
             session.step = ChatStep.ASK_CALLBACK
             return ChatReply(text=CALLBACK_QUESTION, options=list(CALLBACK_OPTIONS))
         return self._ask_agent(session)
 
     def _ask_agent(self, session: ChatSession) -> ChatReply:
-        conversation = session.history[session.agent_start_index:]
-        answer = self._agent.reply(session.category, conversation)
+        answer = self._agent.reply(session.category, session.agent_conversation())
         return ChatReply(text=answer, options=[FINISH_OPTION])
 
     def _handle_callback(self, session: ChatSession, text: str) -> ChatReply:
