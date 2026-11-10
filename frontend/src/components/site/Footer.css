@@ -1,0 +1,34 @@
+.footer {
+  padding: 40px 0;
+  background: var(--color-text);
+  color: var(--color-white);
+}
+
+.footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer__logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-gold);
+}
+
+.footer__phone {
+  font-weight: 700;
+  direction: ltr;
+  display: inline-block;
+}
+
+.footer__note {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.footer__note a {
+  text-decoration: underline;
+}

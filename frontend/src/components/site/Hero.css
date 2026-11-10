@@ -1,0 +1,19 @@
+.hero {
+  padding: 120px 0 100px;
+  background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-light) 100%);
+  color: var(--color-white);
+  text-align: center;
+}
+
+.hero__title {
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+}
+
+.hero__subtitle {
+  max-width: 640px;
+  margin: 0 auto 36px;
+  font-size: 1.25rem;
+  font-weight: 300;
+}

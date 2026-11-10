@@ -35,6 +35,22 @@ python -m venv .venv                             # once
 .venv\Scripts\python -m uvicorn app.main:app --reload   # dev server, API docs at http://127.0.0.1:8000/docs
 ```
 
+Frontend, from `frontend/` (the backend must be running too - Vite proxies `/api/*` to port 8000):
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run lint
+npm run build
+```
+
+## Frontend conventions
+- One component per file, with its own CSS file next to it; BEM-style class names (`header__logo`).
+- Colors and fonts only via the CSS variables in `src/index.css` (taken from the original site).
+- RTL: `dir="rtl"` is set once in `index.html`; use logical CSS (`inset-inline-start`, `margin-inline-*`).
+- Server calls live in `src/api/`; React code calls relative `/api/...` paths only. The backend URL
+  appears once, in the proxy in `vite.config.js`. No secrets in the frontend - ever.
+- Links to the original site live in `src/siteLinks.js`. Don't copy the site's logo or licensed font.
+
 ## Backend conventions
 - Routes get services through FastAPI `Depends` (see `app/dependencies.py`), so tests can swap them
   with `app.dependency_overrides`.
