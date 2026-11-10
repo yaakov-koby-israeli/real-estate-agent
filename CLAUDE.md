@@ -50,6 +50,10 @@ npm run build
 - Server calls live in `src/api/`; React code calls relative `/api/...` paths only. The backend URL
   appears once, in the proxy in `vite.config.js`. No secrets in the frontend - ever.
 - Links to the original site live in `src/siteLinks.js`. Don't copy the site's logo or licensed font.
+- Chat: the open/closed state is lifted to `App` (Hero and ChatWidget both open it); the rest of the
+  chat state stays in `ChatWidget`. Small chat components only get props and report events.
+- Bot text is formatted by `MessageText.jsx` into React elements - never `dangerouslySetInnerHTML`.
+- The chat input is never disabled while waiting (that drops focus); only sending is blocked (`canSend`).
 
 ## Backend conventions
 - Routes get services through FastAPI `Depends` (see `app/dependencies.py`), so tests can swap them
