@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SessionExpiredError, sendMessage, startChat } from "../../api/chatApi";
 import ChatInput from "./ChatInput";
 import MessageList from "./MessageList";
@@ -8,40 +8,46 @@ import "./ChatWidget.css";
 const ERROR_TEXT = "מצטערים, משהו השתבש. נסו שוב בעוד רגע.";
 const RESTART_TEXT = "השיחה התאפסה, מתחילים מחדש 🙂";
 
-export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+// Open/closed state lives in App, so other parts of the page (e.g. the Hero button) can open the chat.
+export default function ChatWidget({ isOpen, onOpen, onClose }) {
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [options, setOptions] = useState([]);
   const [step, setStep] = useState(null);
   const [isWaiting, setIsWaiting] = useState(false);
+  const hasStarted = useRef(false);
 
-  function addMessage(role, text) {
+  // useCallback keeps the same function between renders, so the effect below doesn't re-run for nothing.
+  const addMessage = useCallback((role, text) => {
     setMessages((prev) => [...prev, { role, text }]);
-  }
+  }, []);
 
-  function applyResponse(data) {
+  const applyResponse = useCallback((data) => {
     setSessionId(data.session_id);
     setStep(data.step);
     setOptions(data.options);
     addMessage("bot", data.text);
-  }
+  }, [addMessage]);
 
-  async function begin() {
+  const begin = useCallback(async () => {
     setIsWaiting(true);
     try {
       applyResponse(await startChat());
     } catch {
+      hasStarted.current = false; // let the next open try again
       addMessage("bot", ERROR_TEXT);
     } finally {
       setIsWaiting(false);
     }
-  }
+  }, [addMessage, applyResponse]);
 
-  function open() {
-    setIsOpen(true);
-    if (!sessionId && !isWaiting) begin();
-  }
+  // Start the conversation the first time the chat is opened - no matter who opened it.
+  useEffect(() => {
+    if (isOpen && !hasStarted.current) {
+      hasStarted.current = true;
+      begin();
+    }
+  }, [isOpen, begin]);
 
   async function send(text) {
     addMessage("user", text);
@@ -63,7 +69,7 @@ export default function ChatWidget() {
 
   if (!isOpen) {
     return (
-      <button className="chat-launcher" onClick={open} aria-label="פתיחת צ'אט עם הסוכן הווירטואלי">
+      <button className="chat-launcher" onClick={onOpen} aria-label="פתיחת צ'אט עם הסוכן הווירטואלי">
         💬
       </button>
     );
@@ -75,7 +81,7 @@ export default function ChatWidget() {
     <div className="chat">
       <div className="chat__header">
         <span>הסוכן הווירטואלי של פרשקובסקי</span>
-        <button className="chat__close" onClick={() => setIsOpen(false)} aria-label="סגירה">✕</button>
+        <button className="chat__close" onClick={onClose} aria-label="סגירה">✕</button>
       </div>
       <MessageList messages={messages} isTyping={isWaiting} />
       <OptionButtons options={options} onSelect={send} disabled={isWaiting} />
