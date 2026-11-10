@@ -77,9 +77,9 @@ export default function ChatWidget() {
         <span>הסוכן הווירטואלי של פרשקובסקי</span>
         <button className="chat__close" onClick={() => setIsOpen(false)} aria-label="סגירה">✕</button>
       </div>
-      <MessageList messages={messages} />
+      <MessageList messages={messages} isTyping={isWaiting} />
       <OptionButtons options={options} onSelect={send} disabled={isWaiting} />
-      <ChatInput onSend={send} disabled={isWaiting || isDone || !sessionId} />
+      <ChatInput onSend={send} disabled={isDone || !sessionId} canSend={!isWaiting} />
     </div>
   );
 }
