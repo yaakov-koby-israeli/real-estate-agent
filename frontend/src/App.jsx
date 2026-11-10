@@ -1,3 +1,4 @@
+import ChatWidget from "./components/chat/ChatWidget";
 import Footer from "./components/site/Footer";
 import Header from "./components/site/Header";
 import Hero from "./components/site/Hero";
@@ -12,6 +13,7 @@ export default function App() {
         <ProjectsGrid />
       </main>
       <Footer />
+      <ChatWidget />
     </>
   );
 }
